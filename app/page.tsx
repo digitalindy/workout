@@ -5,10 +5,10 @@ export default function Home() {
     <div className="min-h-screen bg-base-200">
       <div className="max-w-6xl mx-auto px-4 py-16">
         <header className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
             Workout Tracker
           </h1>
-          <p className="text-xl text-base-content/70">
+          <p className="text-lg sm:text-xl text-base-content/70">
             Track your workouts, manage exercises, and build your fitness journey
           </p>
         </header>

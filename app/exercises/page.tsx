@@ -101,7 +101,7 @@ export default function ExercisesPage() {
     <div className="min-h-screen bg-base-200 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Exercise Directory</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Exercise Directory</h1>
           <Link href="/" className="btn btn-neutral">
             Back to Home
           </Link>
@@ -197,7 +197,7 @@ export default function ExercisesPage() {
             exercises.map((exercise) => (
               <div key={exercise.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
                 <div className="card-body">
-                  <div className="flex justify-between items-start gap-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex-1">
                       <h3 className="card-title mb-3">
                         {exercise.name}
@@ -209,20 +209,20 @@ export default function ExercisesPage() {
                         <img
                           src={exercise.gifUrl}
                           alt={exercise.name}
-                          className="w-48 h-48 object-cover rounded-lg"
+                          className="w-full sm:w-48 h-48 object-cover rounded-lg"
                         />
                       </div>
                     )}
-                    <div className="flex flex-col gap-2 ml-4">
+                    <div className="flex flex-row sm:flex-col gap-2 sm:ml-4">
                       <button
                         onClick={() => handleEdit(exercise)}
-                        className="btn btn-warning btn-sm"
+                        className="btn btn-warning btn-sm flex-1 sm:flex-none"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(exercise.id)}
-                        className="btn btn-error btn-sm"
+                        className="btn btn-error btn-sm flex-1 sm:flex-none"
                       >
                         Delete
                       </button>

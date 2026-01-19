@@ -360,7 +360,7 @@ export default function WorkoutsPage() {
                 )}
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="form-control">
                   <label className="label"><span className="label-text">
@@ -440,15 +440,18 @@ export default function WorkoutsPage() {
 
                     return (
                       <div key={idx} className="bg-base-200 p-3 rounded-lg">
-                        <div className="grid grid-cols-12 gap-2 items-center">
-                          <div className="col-span-1 text-center font-mono text-sm opacity-70">
+                        <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:items-center">
+                          <div className="hidden sm:block sm:col-span-1 text-center font-mono text-sm opacity-70">
                             {idx + 1}
                           </div>
-                          <div className={showWeightField ? "col-span-4" : "col-span-6"}>
+                          <div className="sm:hidden text-xs font-mono opacity-70 mb-1">
+                            Set #{idx + 1}
+                          </div>
+                          <div className={showWeightField ? "sm:col-span-4" : "sm:col-span-6"}>
                             <select
                               value={set.exerciseId}
                               onChange={(e) => updateSet(idx, 'exerciseId', parseInt(e.target.value))}
-                              className="input input-bordered input-sm"
+                              className="select select-bordered select-sm w-full"
                               required
                             >
                               <option value={0}>Select exercise</option>
@@ -459,40 +462,42 @@ export default function WorkoutsPage() {
                               ))}
                             </select>
                           </div>
-                          {showWeightField && (
-                            <div className="col-span-2">
+                          <div className="flex gap-2 sm:contents">
+                            {showWeightField && (
+                              <div className="flex-1 sm:col-span-2">
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  placeholder="Weight"
+                                  value={set.weight || ''}
+                                  onChange={(e) => updateSet(idx, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                  className="input input-bordered input-sm w-full"
+                                  title={set.weight ? 'Last used weight' : ''}
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 sm:col-span-2">
                               <input
                                 type="number"
-                                step="0.5"
-                                placeholder="Weight"
-                                value={set.weight || ''}
-                                onChange={(e) => updateSet(idx, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
-                                className="input input-bordered input-sm"
-                                title={set.weight ? 'Last used weight' : ''}
+                                placeholder="Reps"
+                                value={set.reps || ''}
+                                onChange={(e) => updateSet(idx, 'reps', parseInt(e.target.value) || 0)}
+                                className="input input-bordered input-sm w-full"
+                                required
+                                title={set.weight ? 'Last used reps' : ''}
                               />
                             </div>
-                          )}
-                          <div className="col-span-2">
-                            <input
-                              type="number"
-                              placeholder="Reps"
-                              value={set.reps || ''}
-                              onChange={(e) => updateSet(idx, 'reps', parseInt(e.target.value) || 0)}
-                              className="input input-bordered input-sm"
-                              required
-                              title={set.weight ? 'Last used reps' : ''}
-                            />
                           </div>
-                          <div className="col-span-2">
+                          <div className="sm:col-span-2">
                             <input
                               type="text"
                               placeholder="Notes"
                               value={set.notes || ''}
                               onChange={(e) => updateSet(idx, 'notes', e.target.value)}
-                              className="input input-bordered input-sm"
+                              className="input input-bordered input-sm w-full"
                             />
                           </div>
-                          <div className="col-span-1">
+                          <div className="sm:col-span-1">
                             <button
                               type="button"
                               onClick={() => removeSet(idx)}
@@ -508,10 +513,10 @@ export default function WorkoutsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                  className="btn btn-primary"
                 >
                   Complete Workout
                 </button>

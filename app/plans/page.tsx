@@ -164,7 +164,7 @@ export default function PlansPage() {
     <div className="min-h-screen bg-base-200 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Workout Plans</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Workout Plans</h1>
           <Link href="/" className="btn btn-neutral">
             Back to Home
           </Link>
@@ -237,8 +237,8 @@ export default function PlansPage() {
 
                   {selectedExercises.map((ex, idx) => (
                     <div key={idx} className="bg-base-200 p-4 rounded-lg mb-2">
-                      <div className="grid grid-cols-12 gap-2 items-start">
-                        <div className="col-span-4">
+                      <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-stretch sm:items-start">
+                        <div className="sm:col-span-4">
                           <select
                             value={ex.exerciseId}
                             onChange={(e) => updateExercise(idx, 'exerciseId', parseInt(e.target.value))}
@@ -253,25 +253,27 @@ export default function PlansPage() {
                             ))}
                           </select>
                         </div>
-                        <div className="col-span-2">
-                          <input
-                            type="number"
-                            placeholder="Sets"
-                            value={ex.targetSets || ''}
-                            onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
-                            className="input input-bordered input-sm w-full"
-                          />
+                        <div className="flex gap-2 sm:contents">
+                          <div className="flex-1 sm:col-span-2">
+                            <input
+                              type="number"
+                              placeholder="Sets"
+                              value={ex.targetSets || ''}
+                              onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
+                              className="input input-bordered input-sm w-full"
+                            />
+                          </div>
+                          <div className="flex-1 sm:col-span-2">
+                            <input
+                              type="number"
+                              placeholder="Reps"
+                              value={ex.targetReps || ''}
+                              onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
+                              className="input input-bordered input-sm w-full"
+                            />
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <input
-                            type="number"
-                            placeholder="Reps"
-                            value={ex.targetReps || ''}
-                            onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
-                            className="input input-bordered input-sm w-full"
-                          />
-                        </div>
-                        <div className="col-span-3">
+                        <div className="sm:col-span-3">
                           <input
                             type="text"
                             placeholder="Notes"
@@ -280,7 +282,7 @@ export default function PlansPage() {
                             className="input input-bordered input-sm w-full"
                           />
                         </div>
-                        <div className="col-span-1">
+                        <div className="sm:col-span-1">
                           <button
                             type="button"
                             onClick={() => removeExercise(idx)}
