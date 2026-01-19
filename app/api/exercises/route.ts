@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { exercises } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const exerciseSchema = z.object({
@@ -39,7 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json(newExercise, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: z.prettifyError(error) }, { status: 400 });
     }
     console.error('Error creating exercise:', error);
     return NextResponse.json({ error: 'Failed to create exercise' }, { status: 500 });

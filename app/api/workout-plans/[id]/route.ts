@@ -101,7 +101,7 @@ export async function PUT(
     return NextResponse.json(planWithExercises);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: z.prettifyError(error) }, { status: 400 });
     }
     console.error('Error updating workout plan:', error);
     return NextResponse.json({ error: 'Failed to update workout plan' }, { status: 500 });
