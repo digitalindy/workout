@@ -3,20 +3,7 @@ import { db } from '@/lib/db';
 import { workoutLogs, workoutSets } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-
-const workoutLogSchema = z.object({
-  workoutPlanId: z.number().optional(),
-  name: z.string().optional(),
-  notes: z.string().optional(),
-  performedAt: z.string().optional(),
-  sets: z.array(z.object({
-    exerciseId: z.number(),
-    setNumber: z.number(),
-    weight: z.number().optional(),
-    reps: z.number(),
-    notes: z.string().optional(),
-  })).optional(),
-});
+import { workoutLogUpdateSchema } from '@/lib/validation/schemas';
 
 export async function GET(
   request: Request,
@@ -55,7 +42,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const validatedData = workoutLogSchema.parse(body);
+    const validatedData = workoutLogUpdateSchema.parse(body);
 
     const [updatedLog] = await db
       .update(workoutLogs)

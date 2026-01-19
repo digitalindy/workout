@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workoutSets } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
@@ -12,24 +12,28 @@ export async function GET(request: Request) {
       return NextResponse.json({});
     }
 
-    // Get the most recent set for each exercise
+    // Get the most recent sets for all exercises in a single query
+    const allRecentSets = await db.query.workoutSets.findMany({
+      where: inArray(workoutSets.exerciseId, exerciseIds),
+      with: {
+        workoutLog: true,
+      },
+      orderBy: [desc(workoutSets.id)],
+    });
+
+    // Group by exercise and then by set number
     const lastWeights: Record<number, { weight: number; reps: number; setNumber: number }[]> = {};
 
     for (const exerciseId of exerciseIds) {
-      const recentSets = await db.query.workoutSets.findMany({
-        where: eq(workoutSets.exerciseId, exerciseId),
-        with: {
-          workoutLog: true,
-        },
-        orderBy: [desc(workoutSets.id)],
-        limit: 10, // Get last 10 sets to find unique set numbers
-      });
+      const exerciseSets = allRecentSets
+        .filter(set => set.exerciseId === exerciseId)
+        .slice(0, 10); // Get last 10 sets to find unique set numbers
 
-      if (recentSets.length > 0) {
+      if (exerciseSets.length > 0) {
         // Group by set number and get the most recent for each
-        const setsByNumber: Record<number, typeof recentSets[0]> = {};
+        const setsByNumber: Record<number, typeof exerciseSets[0]> = {};
 
-        for (const set of recentSets) {
+        for (const set of exerciseSets) {
           if (!setsByNumber[set.setNumber]) {
             setsByNumber[set.setNumber] = set;
           }

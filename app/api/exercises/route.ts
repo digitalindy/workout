@@ -2,13 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { exercises } from '@/lib/db/schema';
 import { z } from 'zod';
-
-const exerciseSchema = z.object({
-  name: z.string().min(1),
-  instructions: z.string().min(1),
-  gifUrl: z.string().url().optional().or(z.literal('')),
-  usesWeight: z.boolean().optional(),
-});
+import { exerciseSchema } from '@/lib/validation/schemas';
 
 export async function GET() {
   try {

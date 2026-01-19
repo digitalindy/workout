@@ -3,13 +3,7 @@ import { db } from '@/lib/db';
 import { exercises } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-
-const exerciseSchema = z.object({
-  name: z.string().min(1).optional(),
-  instructions: z.string().min(1).optional(),
-  gifUrl: z.string().url().optional().or(z.literal('')),
-  usesWeight: z.boolean().optional(),
-});
+import { exerciseUpdateSchema } from '@/lib/validation/schemas';
 
 export async function GET(
   request: Request,
@@ -37,7 +31,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const validatedData = exerciseSchema.parse(body);
+    const validatedData = exerciseUpdateSchema.parse(body);
 
     const [updatedExercise] = await db
       .update(exercises)

@@ -3,19 +3,7 @@ import { db } from '@/lib/db';
 import { workoutPlans, workoutPlanExercises } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-
-const workoutPlanSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  notes: z.string().optional(),
-  exercises: z.array(z.object({
-    exerciseId: z.number(),
-    orderIndex: z.number(),
-    targetSets: z.number().optional(),
-    targetReps: z.number().optional(),
-    notes: z.string().optional(),
-  })).optional(),
-});
+import { workoutPlanSchema } from '@/lib/validation/schemas';
 
 export async function GET() {
   try {
