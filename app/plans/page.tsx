@@ -154,221 +154,218 @@ export default function PlansPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-base-200 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Workout Plans</h1>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
+          <h1 className="text-3xl font-bold">Workout Plans</h1>
+          <Link href="/" className="btn btn-neutral">
             Back to Home
           </Link>
         </div>
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="mb-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          className="btn btn-primary mb-6"
         >
           {showForm ? 'Cancel' : 'Create New Plan'}
         </button>
 
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingId ? 'Edit Plan' : 'New Plan'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Plan Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Exercises</label>
-                  <button
-                    type="button"
-                    onClick={addExercise}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                  >
-                    Add Exercise
-                  </button>
+          <div className="card bg-base-100 shadow-xl mb-8">
+            <div className="card-body">
+              <h2 className="card-title">
+                {editingId ? 'Edit Plan' : 'New Plan'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Plan Name *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="input input-bordered"
+                  />
                 </div>
 
-                {selectedExercises.map((ex, idx) => (
-                  <div key={idx} className="bg-gray-50 p-4 rounded-lg mb-2">
-                    <div className="grid grid-cols-12 gap-2 items-start">
-                      <div className="col-span-4">
-                        <select
-                          value={ex.exerciseId}
-                          onChange={(e) => updateExercise(idx, 'exerciseId', parseInt(e.target.value))}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                          required
-                        >
-                          <option value={0}>Select exercise</option>
-                          {allExercises.map((exercise) => (
-                            <option key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-span-2">
-                        <input
-                          type="number"
-                          placeholder="Sets"
-                          value={ex.targetSets || ''}
-                          onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <input
-                          type="number"
-                          placeholder="Reps"
-                          value={ex.targetReps || ''}
-                          onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        />
-                      </div>
-                      <div className="col-span-3">
-                        <input
-                          type="text"
-                          placeholder="Notes"
-                          value={ex.notes || ''}
-                          onChange={(e) => updateExercise(idx, 'notes', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <button
-                          type="button"
-                          onClick={() => removeExercise(idx)}
-                          className="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 w-full"
-                        >
-                          ×
-                        </button>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Description</span>
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="textarea textarea-bordered"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Notes</span>
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="textarea textarea-bordered"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="label">
+                      <span className="label-text">Exercises</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addExercise}
+                      className="btn btn-success btn-sm"
+                    >
+                      Add Exercise
+                    </button>
+                  </div>
+
+                  {selectedExercises.map((ex, idx) => (
+                    <div key={idx} className="bg-base-200 p-4 rounded-lg mb-2">
+                      <div className="grid grid-cols-12 gap-2 items-start">
+                        <div className="col-span-4">
+                          <select
+                            value={ex.exerciseId}
+                            onChange={(e) => updateExercise(idx, 'exerciseId', parseInt(e.target.value))}
+                            className="select select-bordered w-full select-sm"
+                            required
+                          >
+                            <option value={0}>Select exercise</option>
+                            {allExercises.map((exercise) => (
+                              <option key={exercise.id} value={exercise.id}>
+                                {exercise.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            placeholder="Sets"
+                            value={ex.targetSets || ''}
+                            onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
+                            className="input input-bordered input-sm w-full"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            placeholder="Reps"
+                            value={ex.targetReps || ''}
+                            onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
+                            className="input input-bordered input-sm w-full"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="text"
+                            placeholder="Notes"
+                            value={ex.notes || ''}
+                            onChange={(e) => updateExercise(idx, 'notes', e.target.value)}
+                            className="input input-bordered input-sm w-full"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <button
+                            type="button"
+                            onClick={() => removeExercise(idx)}
+                            className="btn btn-error btn-sm w-full"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                >
-                  {editingId ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <div className="flex gap-2">
+                  <button type="submit" className="btn btn-primary">
+                    {editingId ? 'Update' : 'Create'}
+                  </button>
+                  <button type="button" onClick={resetForm} className="btn btn-ghost">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
         <div className="grid gap-4">
           {plans.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
-              No workout plans yet. Create your first one!
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body text-center">
+                <p>No workout plans yet. Create your first one!</p>
+              </div>
             </div>
           ) : (
             plans.map((plan) => (
-              <div
-                key={plan.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.name}</h3>
-                    {plan.description && (
-                      <p className="text-gray-600 mb-2">{plan.description}</p>
-                    )}
-                    {plan.notes && (
-                      <p className="text-sm text-gray-500 italic mb-3">{plan.notes}</p>
-                    )}
+              <div key={plan.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                <div className="card-body">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="card-title mb-2">{plan.name}</h3>
+                      {plan.description && (
+                        <p className="mb-2">{plan.description}</p>
+                      )}
+                      {plan.notes && (
+                        <p className="text-sm opacity-70 italic mb-3">{plan.notes}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEdit(plan)}
+                        className="btn btn-warning btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(plan.id)}
+                        className="btn btn-error btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(plan)}
-                      className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(plan.id)}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
 
-                <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Exercises:</h4>
-                  <div className="space-y-2">
-                    {plan.exercises.map((ex, idx) => (
-                      <div key={ex.id} className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-400 font-mono">{idx + 1}.</span>
-                        <span className="font-medium">{ex.exercise.name}</span>
-                        {(ex.targetSets || ex.targetReps) && (
-                          <span className="text-gray-600">
-                            {ex.targetSets && `${ex.targetSets} sets`}
-                            {ex.targetSets && ex.targetReps && ' × '}
-                            {ex.targetReps && `${ex.targetReps} reps`}
-                          </span>
-                        )}
-                        {ex.notes && (
-                          <span className="text-gray-500 italic">- {ex.notes}</span>
-                        )}
-                      </div>
-                    ))}
+                  <div className="divider"></div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Exercises:</h4>
+                    <div className="space-y-2">
+                      {plan.exercises.map((ex, idx) => (
+                        <div key={ex.id} className="flex items-center gap-3 text-sm">
+                          <span className="badge badge-neutral">{idx + 1}</span>
+                          <span className="font-medium">{ex.exercise.name}</span>
+                          {(ex.targetSets || ex.targetReps) && (
+                            <span className="opacity-70">
+                              {ex.targetSets && `${ex.targetSets} sets`}
+                              {ex.targetSets && ex.targetReps && ' × '}
+                              {ex.targetReps && `${ex.targetReps} reps`}
+                            </span>
+                          )}
+                          {ex.notes && (
+                            <span className="opacity-60 italic">- {ex.notes}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

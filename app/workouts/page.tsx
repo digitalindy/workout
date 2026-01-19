@@ -313,20 +313,20 @@ export default function WorkoutsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="text-base-content opacity-70">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-base-200 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Workout Logs</h1>
+          <h1 className="text-3xl font-bold text-base-content">Workout Logs</h1>
           <Link
             href="/"
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className="btn btn-neutral"
           >
             Back to Home
           </Link>
@@ -335,12 +335,12 @@ export default function WorkoutsPage() {
         <div className="mb-6 flex gap-3 items-center">
           <button
             onClick={() => setShowForm(!showForm)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="btn btn-primary"
           >
             {showForm ? 'Cancel' : 'Log New Workout'}
           </button>
           {!showForm && isDraft && (
-            <div className="text-sm text-gray-600 flex items-center gap-2">
+            <div className="text-sm text-base-content opacity-70 flex items-center gap-2">
               <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
               You have an unsaved draft
             </div>
@@ -348,26 +348,28 @@ export default function WorkoutsPage() {
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Log Workout</h2>
-              {isDraft && lastSaved && (
-                <div className="text-sm text-gray-500 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Draft saved {formatTimeSince(lastSaved)}
-                </div>
-              )}
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="card bg-base-100 shadow-xl mb-8">
+            <div className="card-body">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="card-title">Log Workout</h2>
+                {isDraft && lastSaved && (
+                  <div className="text-sm opacity-70 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+                    Draft saved {formatTimeSince(lastSaved)}
+                  </div>
+                )}
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="form-control">
+                  <label className="label"><span className="label-text">
                     Workout Plan (Optional)
-                  </label>
+                  </span></label></div>
                   <select
                     value={formData.workoutPlanId}
                     onChange={(e) => handlePlanSelect(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="select select-bordered w-full"
                   >
                     <option value={0}>Custom Workout</option>
                     {plans.map((plan) => (
@@ -379,36 +381,39 @@ export default function WorkoutsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="form-control">
+                  <label className="label"><span className="label-text">
                     Workout Name
-                  </label>
+                  </span></label></div>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="select select-bordered w-full"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="form-control">
+                  <label className="label"><span className="label-text">
                   Date & Time
-                </label>
+                </span></label></div>
                 <input
                   type="datetime-local"
                   value={formData.performedAt}
                   onChange={(e) => setFormData({ ...formData, performedAt: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="select select-bordered w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <div className="form-control">
+                  <label className="label"><span className="label-text">Notes</span></label></div>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="select select-bordered w-full"
                   rows={2}
                 />
               </div>
@@ -416,13 +421,13 @@ export default function WorkoutsPage() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Sets</label>
-                    <p className="text-xs text-gray-500 mt-1">Weights/reps auto-filled from last workout</p>
+                    <label className="label"><span className="label-text">Sets</span></label>
+                    <p className="text-xs opacity-70 mt-1">Weights/reps auto-filled from last workout</p>
                   </div>
                   <button
                     type="button"
                     onClick={addSet}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                    className="btn btn-success btn-sm"
                   >
                     Add Set
                   </button>
@@ -434,16 +439,16 @@ export default function WorkoutsPage() {
                     const showWeightField = exercise?.usesWeight ?? true;
 
                     return (
-                      <div key={idx} className="bg-gray-50 p-3 rounded-lg">
+                      <div key={idx} className="bg-base-200 p-3 rounded-lg">
                         <div className="grid grid-cols-12 gap-2 items-center">
-                          <div className="col-span-1 text-center font-mono text-sm text-gray-500">
+                          <div className="col-span-1 text-center font-mono text-sm opacity-70">
                             {idx + 1}
                           </div>
                           <div className={showWeightField ? "col-span-4" : "col-span-6"}>
                             <select
                               value={set.exerciseId}
                               onChange={(e) => updateSet(idx, 'exerciseId', parseInt(e.target.value))}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              className="input input-bordered input-sm"
                               required
                             >
                               <option value={0}>Select exercise</option>
@@ -462,7 +467,7 @@ export default function WorkoutsPage() {
                                 placeholder="Weight"
                                 value={set.weight || ''}
                                 onChange={(e) => updateSet(idx, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
-                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                className="input input-bordered input-sm"
                                 title={set.weight ? 'Last used weight' : ''}
                               />
                             </div>
@@ -473,7 +478,7 @@ export default function WorkoutsPage() {
                               placeholder="Reps"
                               value={set.reps || ''}
                               onChange={(e) => updateSet(idx, 'reps', parseInt(e.target.value) || 0)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              className="input input-bordered input-sm"
                               required
                               title={set.weight ? 'Last used reps' : ''}
                             />
@@ -484,14 +489,14 @@ export default function WorkoutsPage() {
                               placeholder="Notes"
                               value={set.notes || ''}
                               onChange={(e) => updateSet(idx, 'notes', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              className="input input-bordered input-sm"
                             />
                           </div>
                           <div className="col-span-1">
                             <button
                               type="button"
                               onClick={() => removeSet(idx)}
-                              className="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 w-full"
+                              className="btn btn-error btn-sm w-full"
                             >
                               ×
                             </button>
@@ -513,62 +518,66 @@ export default function WorkoutsPage() {
                 <button
                   type="button"
                   onClick={() => saveDraft()}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
+                  className="btn btn-neutral"
                 >
                   Save Draft
                 </button>
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+                  className="btn btn-ghost"
                 >
                   Discard
                 </button>
               </div>
             </form>
+            </div>
           </div>
         )}
 
         <div className="grid gap-4">
           {workouts.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
-              No workouts logged yet. Start tracking your first workout!
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body text-center">
+                <p>No workouts logged yet. Start tracking your first workout!</p>
+              </div>
             </div>
           ) : (
             workouts.map((workout) => (
               <div
                 key={workout.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      {workout.name || workout.workoutPlan?.name || 'Untitled Workout'}
-                    </h3>
-                    <p className="text-sm text-gray-500">{formatDate(workout.performedAt)}</p>
-                    {workout.notes && (
-                      <p className="text-sm text-gray-600 mt-2 italic">{workout.notes}</p>
-                    )}
+                <div className="card-body">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="card-title">
+                        {workout.name || workout.workoutPlan?.name || 'Untitled Workout'}
+                      </h3>
+                      <p className="text-sm opacity-70">{formatDate(workout.performedAt)}</p>
+                      {workout.notes && (
+                        <p className="text-sm opacity-70 mt-2 italic">{workout.notes}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(workout.id)}
+                      className="btn btn-error btn-sm"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleDelete(workout.id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
 
-                <div className="border-t pt-4">
+                  <div className="divider"></div>
                   <div className="space-y-1">
                     {workout.sets.map((set) => (
                       <div key={set.id} className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-400 font-mono w-8">#{set.setNumber}</span>
+                        <span className="opacity-60 font-mono w-8">#{set.setNumber}</span>
                         <span className="font-medium w-40">{set.exercise.name}</span>
-                        <span className="text-gray-600">
+                        <span className="text-base-content opacity-70">
                           {set.weight && `${set.weight} lbs × `}
                           {set.reps} reps
                         </span>
-                        {set.notes && <span className="text-gray-500 italic">- {set.notes}</span>}
+                        {set.notes && <span className="opacity-70 italic">- {set.notes}</span>}
                       </div>
                     ))}
                   </div>
