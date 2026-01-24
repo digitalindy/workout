@@ -70,6 +70,7 @@ export default function WorkoutsPage() {
     completed?: boolean;
   }[]>([]);
   const [showCompleted, setShowCompleted] = useState(true);
+  const [expandedSets, setExpandedSets] = useState<Set<number>>(new Set());
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDraft, setIsDraft] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -271,6 +272,23 @@ export default function WorkoutsPage() {
 
   const removeSet = (index: number) => {
     setSets(sets.filter((_, i) => i !== index));
+    setExpandedSets(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+  };
+
+  const toggleSetExpanded = (index: number) => {
+    setExpandedSets(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const updateSet = async (index: number, field: string, value: number | string | boolean | undefined) => {
@@ -451,100 +469,98 @@ export default function WorkoutsPage() {
 
                     if (set.completed && !showCompleted) return null;
 
+                    const isExpanded = expandedSets.has(idx) || !set.completed;
+
                     return (
-                      <div key={idx} className={`bg-base-200 p-3 rounded-lg transition-opacity ${set.completed ? 'opacity-60' : ''}`}>
-                        <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:items-center">
-                          <div className="hidden sm:flex sm:col-span-1 items-center justify-center gap-1">
-                            <input
-                              type="checkbox"
-                              checked={set.completed || false}
-                              onChange={(e) => updateSet(idx, 'completed', e.target.checked)}
-                              className="checkbox checkbox-sm"
-                            />
-                            <span className="font-mono text-sm opacity-70">{idx + 1}</span>
-                          </div>
-                          <div className="sm:hidden flex items-center gap-2 mb-1">
-                            <input
-                              type="checkbox"
-                              checked={set.completed || false}
-                              onChange={(e) => updateSet(idx, 'completed', e.target.checked)}
-                              className="checkbox checkbox-sm"
-                            />
-                            <span className="text-xs font-mono opacity-70">Set #{idx + 1}</span>
-                          </div>
-                          <div className={showWeightField ? "sm:col-span-3 flex gap-1" : "sm:col-span-5 flex gap-1"}>
-                            <select
-                              value={set.exerciseId}
-                              onChange={(e) => updateSet(idx, 'exerciseId', parseInt(e.target.value))}
-                              className={`select select-bordered select-sm flex-1 ${set.completed ? 'line-through' : ''}`}
-                              required
-                            >
-                              <option value={0}>Select exercise</option>
-                              {allExercises.map((ex) => (
-                                <option key={ex.id} value={ex.id}>
-                                  {ex.name}
-                                </option>
-                              ))}
-                            </select>
-                            {set.exerciseId > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const ex = allExercises.find(e => e.id === set.exerciseId);
-                                  if (ex) setSelectedExercise(ex);
-                                }}
-                                className="btn btn-ghost btn-sm btn-square"
-                                title="View exercise info"
+                      <div key={idx} className={`bg-base-200 rounded-lg ${set.completed && !isExpanded ? 'border-l-4 border-success' : ''}`}>
+                        <div className="flex items-center gap-2 py-2 px-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleSetExpanded(idx)}
+                            className="btn btn-ghost btn-xs btn-square shrink-0"
+                          >
+                            {isExpanded ? '▼' : '▶'}
+                          </button>
+                          <span className="font-mono text-xs opacity-70 shrink-0">#{idx + 1}</span>
+                          <span className={`text-sm flex-1 truncate ${set.completed ? 'line-through opacity-60' : ''}`}>
+                            {exercise?.name || 'Select exercise'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateSet(idx, 'completed', !set.completed)}
+                            className={`btn btn-xs ${set.completed ? 'btn-ghost' : 'btn-success'} shrink-0`}
+                          >
+                            {set.completed ? '↩️' : '✓'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeSet(idx)}
+                            className="btn btn-ghost btn-xs shrink-0 text-error"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        {isExpanded && (
+                          <div className="px-3 pb-3">
+                            <div className="flex flex-col gap-2 pt-2">
+                            <div className="flex gap-2">
+                              <select
+                                value={set.exerciseId}
+                                onChange={(e) => updateSet(idx, 'exerciseId', parseInt(e.target.value))}
+                                className="select select-bordered select-sm flex-1"
+                                required
                               >
-                                ℹ️
-                              </button>
-                            )}
-                          </div>
-                          <div className="flex gap-2 sm:contents">
-                            {showWeightField && (
-                              <div className="flex-1 sm:col-span-2">
+                                <option value={0}>Select exercise</option>
+                                {allExercises.map((ex) => (
+                                  <option key={ex.id} value={ex.id}>
+                                    {ex.name}
+                                  </option>
+                                ))}
+                              </select>
+                              {set.exerciseId > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const ex = allExercises.find(e => e.id === set.exerciseId);
+                                    if (ex) setSelectedExercise(ex);
+                                  }}
+                                  className="btn btn-ghost btn-sm btn-square shrink-0"
+                                  title="View exercise info"
+                                >
+                                  ℹ️
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              {showWeightField && (
                                 <input
                                   type="number"
                                   step="0.5"
-                                  placeholder="Weight"
+                                  placeholder="Weight (lbs)"
                                   value={set.weight || ''}
                                   onChange={(e) => updateSet(idx, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
-                                  className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
-                                  title={set.weight ? 'Last used weight' : ''}
+                                  className="input input-bordered input-sm flex-1"
                                 />
-                              </div>
-                            )}
-                            <div className="flex-1 sm:col-span-2">
+                              )}
                               <input
                                 type="number"
                                 placeholder="Reps"
                                 value={set.reps || ''}
                                 onChange={(e) => updateSet(idx, 'reps', parseInt(e.target.value) || 0)}
-                                className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
+                                className="input input-bordered input-sm flex-1"
                                 required
-                                title={set.weight ? 'Last used reps' : ''}
                               />
                             </div>
-                          </div>
-                          <div className="sm:col-span-2">
                             <input
                               type="text"
-                              placeholder="Notes"
+                              placeholder="Notes (optional)"
                               value={set.notes || ''}
                               onChange={(e) => updateSet(idx, 'notes', e.target.value)}
-                              className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
+                              className="input input-bordered input-sm w-full"
                             />
                           </div>
-                          <div className="sm:col-span-1">
-                            <button
-                              type="button"
-                              onClick={() => removeSet(idx)}
-                              className="btn btn-error btn-sm w-full"
-                            >
-                              ×
-                            </button>
-                          </div>
                         </div>
+                        )}
                       </div>
                     );
                   })}
