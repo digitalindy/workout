@@ -1,12 +1,14 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Markdown from "react-markdown";
 
 type Exercise = {
   id: number;
   name: string;
   usesWeight: boolean;
+  instructions?: string;
+  gifUrl?: string;
 };
 
 type WorkoutSet = {
@@ -21,7 +23,6 @@ type WorkoutSet = {
 
 type WorkoutLog = {
   id: number;
-  name?: string;
   notes?: string;
   performedAt: string;
   workoutPlan?: {
@@ -31,10 +32,22 @@ type WorkoutLog = {
   sets: WorkoutSet[];
 };
 
+type PlanExercise = {
+  id: number;
+  exerciseId: number;
+  orderIndex: number;
+  targetSets?: number;
+  targetReps?: number;
+  notes?: string;
+  supersetGroup?: number;
+  category?: string;
+  exercise: Exercise;
+};
+
 type WorkoutPlan = {
   id: number;
   name: string;
-  exercises: any[];
+  exercises: PlanExercise[];
 };
 
 export default function WorkoutsPage() {
@@ -45,7 +58,6 @@ export default function WorkoutsPage() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     workoutPlanId: 0,
-    name: '',
     notes: '',
     performedAt: new Date().toISOString().slice(0, 16),
   });
@@ -55,40 +67,14 @@ export default function WorkoutsPage() {
     weight?: number;
     reps: number;
     notes?: string;
+    completed?: boolean;
   }[]>([]);
+  const [showCompleted, setShowCompleted] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDraft, setIsDraft] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
-  useEffect(() => {
-    fetchWorkouts();
-    fetchPlans();
-    fetchExercises();
-    loadDraft();
-  }, []);
-
-  // Auto-save draft every 30 seconds when form is open
-  useEffect(() => {
-    if (!showForm || sets.length === 0) return;
-
-    const interval = setInterval(() => {
-      saveDraft();
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [showForm, formData, sets]);
-
-  // Save draft whenever sets or formData changes (debounced effect)
-  useEffect(() => {
-    if (!showForm || sets.length === 0) return;
-
-    const timeout = setTimeout(() => {
-      saveDraft();
-    }, 2000); // 2 second debounce
-
-    return () => clearTimeout(timeout);
-  }, [formData, sets]);
-
-  const saveDraft = () => {
+  const saveDraft = useCallback(() => {
     if (sets.length === 0) return;
 
     const draft = {
@@ -99,9 +85,15 @@ export default function WorkoutsPage() {
     localStorage.setItem('workoutDraft', JSON.stringify(draft));
     setLastSaved(new Date());
     setIsDraft(true);
-  };
+  }, [formData, sets]);
 
-  const loadDraft = () => {
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem('workoutDraft');
+    setLastSaved(null);
+    setIsDraft(false);
+  }, []);
+
+  const loadDraft = useCallback(() => {
     const saved = localStorage.getItem('workoutDraft');
     if (saved) {
       try {
@@ -123,13 +115,36 @@ export default function WorkoutsPage() {
         console.error('Error loading draft:', error);
       }
     }
-  };
+  }, [clearDraft]);
 
-  const clearDraft = () => {
-    localStorage.removeItem('workoutDraft');
-    setLastSaved(null);
-    setIsDraft(false);
-  };
+  useEffect(() => {
+    fetchWorkouts();
+    fetchPlans();
+    fetchExercises();
+    loadDraft();
+  }, [loadDraft]);
+
+  // Auto-save draft every 30 seconds when form is open
+  useEffect(() => {
+    if (!showForm || sets.length === 0) return;
+
+    const interval = setInterval(() => {
+      saveDraft();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [showForm, formData, sets, saveDraft]);
+
+  // Save draft whenever sets or formData changes (debounced effect)
+  useEffect(() => {
+    if (!showForm || sets.length === 0) return;
+
+    const timeout = setTimeout(() => {
+      saveDraft();
+    }, 2000); // 2 second debounce
+
+    return () => clearTimeout(timeout);
+  }, [formData, sets, showForm, saveDraft]);
 
   const fetchWorkouts = async () => {
     try {
@@ -166,7 +181,7 @@ export default function WorkoutsPage() {
   const handlePlanSelect = async (planId: number) => {
     const plan = plans.find((p) => p.id === planId);
     if (plan) {
-      setFormData({ ...formData, workoutPlanId: planId, name: plan.name });
+      setFormData({ ...formData, workoutPlanId: planId });
 
       // Get unique exercise IDs from plan
       const exerciseIds = [...new Set(plan.exercises.map(ex => ex.exerciseId))];
@@ -258,12 +273,12 @@ export default function WorkoutsPage() {
     setSets(sets.filter((_, i) => i !== index));
   };
 
-  const updateSet = async (index: number, field: string, value: any) => {
+  const updateSet = async (index: number, field: string, value: number | string | boolean | undefined) => {
     const updated = [...sets];
     updated[index] = { ...updated[index], [field]: value };
 
     // If changing exercise, fetch and populate last weight/reps for that exercise
-    if (field === 'exerciseId' && value > 0) {
+    if (field === 'exerciseId' && typeof value === 'number' && value > 0) {
       const lastWeights = await fetchLastWeights([value]);
       const setNumber = updated[index].setNumber;
       const lastWeight = lastWeights[value]?.find(w => w.setNumber === setNumber);
@@ -283,7 +298,6 @@ export default function WorkoutsPage() {
     }
     setFormData({
       workoutPlanId: 0,
-      name: '',
       notes: '',
       performedAt: new Date().toISOString().slice(0, 16),
     });
@@ -380,18 +394,6 @@ export default function WorkoutsPage() {
                   </select>
                 </div>
 
-                <div>
-                  <div className="form-control">
-                  <label className="label"><span className="label-text">
-                    Workout Name
-                  </span></label></div>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="select select-bordered w-full"
-                  />
-                </div>
               </div>
 
               <div>
@@ -424,13 +426,22 @@ export default function WorkoutsPage() {
                     <label className="label"><span className="label-text">Sets</span></label>
                     <p className="text-xs opacity-70 mt-1">Weights/reps auto-filled from last workout</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={addSet}
-                    className="btn btn-success btn-sm"
-                  >
-                    Add Set
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCompleted(!showCompleted)}
+                      className="btn btn-ghost btn-sm"
+                    >
+                      {showCompleted ? 'Hide' : 'Show'} Completed
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addSet}
+                      className="btn btn-success btn-sm"
+                    >
+                      Add Set
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -438,20 +449,34 @@ export default function WorkoutsPage() {
                     const exercise = allExercises.find(ex => ex.id === set.exerciseId);
                     const showWeightField = exercise?.usesWeight ?? true;
 
+                    if (set.completed && !showCompleted) return null;
+
                     return (
-                      <div key={idx} className="bg-base-200 p-3 rounded-lg">
+                      <div key={idx} className={`bg-base-200 p-3 rounded-lg transition-opacity ${set.completed ? 'opacity-60' : ''}`}>
                         <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:items-center">
-                          <div className="hidden sm:block sm:col-span-1 text-center font-mono text-sm opacity-70">
-                            {idx + 1}
+                          <div className="hidden sm:flex sm:col-span-1 items-center justify-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={set.completed || false}
+                              onChange={(e) => updateSet(idx, 'completed', e.target.checked)}
+                              className="checkbox checkbox-sm"
+                            />
+                            <span className="font-mono text-sm opacity-70">{idx + 1}</span>
                           </div>
-                          <div className="sm:hidden text-xs font-mono opacity-70 mb-1">
-                            Set #{idx + 1}
+                          <div className="sm:hidden flex items-center gap-2 mb-1">
+                            <input
+                              type="checkbox"
+                              checked={set.completed || false}
+                              onChange={(e) => updateSet(idx, 'completed', e.target.checked)}
+                              className="checkbox checkbox-sm"
+                            />
+                            <span className="text-xs font-mono opacity-70">Set #{idx + 1}</span>
                           </div>
-                          <div className={showWeightField ? "sm:col-span-4" : "sm:col-span-6"}>
+                          <div className={showWeightField ? "sm:col-span-3 flex gap-1" : "sm:col-span-5 flex gap-1"}>
                             <select
                               value={set.exerciseId}
                               onChange={(e) => updateSet(idx, 'exerciseId', parseInt(e.target.value))}
-                              className="select select-bordered select-sm w-full"
+                              className={`select select-bordered select-sm flex-1 ${set.completed ? 'line-through' : ''}`}
                               required
                             >
                               <option value={0}>Select exercise</option>
@@ -461,6 +486,19 @@ export default function WorkoutsPage() {
                                 </option>
                               ))}
                             </select>
+                            {set.exerciseId > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const ex = allExercises.find(e => e.id === set.exerciseId);
+                                  if (ex) setSelectedExercise(ex);
+                                }}
+                                className="btn btn-ghost btn-sm btn-square"
+                                title="View exercise info"
+                              >
+                                ℹ️
+                              </button>
+                            )}
                           </div>
                           <div className="flex gap-2 sm:contents">
                             {showWeightField && (
@@ -471,7 +509,7 @@ export default function WorkoutsPage() {
                                   placeholder="Weight"
                                   value={set.weight || ''}
                                   onChange={(e) => updateSet(idx, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
-                                  className="input input-bordered input-sm w-full"
+                                  className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
                                   title={set.weight ? 'Last used weight' : ''}
                                 />
                               </div>
@@ -482,7 +520,7 @@ export default function WorkoutsPage() {
                                 placeholder="Reps"
                                 value={set.reps || ''}
                                 onChange={(e) => updateSet(idx, 'reps', parseInt(e.target.value) || 0)}
-                                className="input input-bordered input-sm w-full"
+                                className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
                                 required
                                 title={set.weight ? 'Last used reps' : ''}
                               />
@@ -494,7 +532,7 @@ export default function WorkoutsPage() {
                               placeholder="Notes"
                               value={set.notes || ''}
                               onChange={(e) => updateSet(idx, 'notes', e.target.value)}
-                              className="input input-bordered input-sm w-full"
+                              className={`input input-bordered input-sm w-full ${set.completed ? 'line-through' : ''}`}
                             />
                           </div>
                           <div className="sm:col-span-1">
@@ -557,7 +595,7 @@ export default function WorkoutsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h3 className="card-title">
-                        {workout.name || workout.workoutPlan?.name || 'Untitled Workout'}
+                        {workout.workoutPlan?.name || 'Untitled Workout'}
                       </h3>
                       <p className="text-sm opacity-70">{formatDate(workout.performedAt)}</p>
                       {workout.notes && (
@@ -592,6 +630,53 @@ export default function WorkoutsPage() {
           )}
         </div>
       </div>
+
+      {selectedExercise && (
+        <dialog open className="modal modal-open">
+          <div className="modal-box max-w-2xl">
+            <h3 className="font-bold text-lg mb-4">{selectedExercise.name}</h3>
+            <div className="space-y-4">
+              {selectedExercise.gifUrl && (
+                <div className="flex justify-center">
+                  <img
+                    src={selectedExercise.gifUrl}
+                    alt={selectedExercise.name}
+                    className="w-full max-w-md rounded-lg"
+                  />
+                </div>
+              )}
+              {selectedExercise.instructions && (
+                <div>
+                  <h4 className="font-semibold mb-2">Instructions:</h4>
+                  <div className="">
+                    <Markdown
+                        components={{
+                          p: ({children}) => <p className="mb-2">{children}</p>,
+                          h1: ({children}) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
+                          h2: ({children}) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                          h3: ({children}) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                          ul: ({children}) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                          ol: ({children}) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                        }}
+                    >
+                      {selectedExercise.instructions}
+                    </Markdown>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-action">
+              <button
+                onClick={() => setSelectedExercise(null)}
+                className="btn"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setSelectedExercise(null)}></div>
+        </dialog>
+      )}
     </div>
   );
 }

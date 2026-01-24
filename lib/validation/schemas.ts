@@ -24,6 +24,8 @@ export const workoutPlanSchema = z.object({
     targetSets: z.number().optional(),
     targetReps: z.number().optional(),
     notes: z.string().optional(),
+    supersetGroup: z.number().optional(),
+    category: z.string().optional(),
   })).optional(),
 });
 
@@ -37,12 +39,13 @@ export const workoutPlanUpdateSchema = z.object({
     targetSets: z.number().optional(),
     targetReps: z.number().optional(),
     notes: z.string().optional(),
+    supersetGroup: z.number().optional(),
+    category: z.string().optional(),
   })).optional(),
 });
 
 export const workoutLogSchema = z.object({
   workoutPlanId: z.number().optional(),
-  name: z.string().optional(),
   notes: z.string().optional(),
   performedAt: z.string().optional(),
   sets: z.array(z.object({
@@ -51,12 +54,12 @@ export const workoutLogSchema = z.object({
     weight: z.number().optional(),
     reps: z.number(),
     notes: z.string().optional(),
+    completed: z.boolean().optional(),
   })),
 });
 
 export const workoutLogUpdateSchema = z.object({
   workoutPlanId: z.number().optional(),
-  name: z.string().optional(),
   notes: z.string().optional(),
   performedAt: z.string().optional(),
   sets: z.array(z.object({
@@ -65,5 +68,6 @@ export const workoutLogUpdateSchema = z.object({
     weight: z.number().optional(),
     reps: z.number(),
     notes: z.string().optional(),
+    completed: z.boolean().optional(),
   })).optional(),
 });

@@ -28,13 +28,14 @@ export const workoutPlanExercises = pgTable('workout_plan_exercises', {
   targetSets: integer('target_sets'),
   targetReps: integer('target_reps'),
   notes: text('notes'),
+  supersetGroup: integer('superset_group'),
+  category: varchar('category', { length: 100 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const workoutLogs = pgTable('workout_logs', {
   id: serial('id').primaryKey(),
   workoutPlanId: integer('workout_plan_id').references(() => workoutPlans.id, { onDelete: 'set null' }),
-  name: varchar('name', { length: 255 }),
   notes: text('notes'),
   performedAt: timestamp('performed_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -48,6 +49,7 @@ export const workoutSets = pgTable('workout_sets', {
   weight: decimal('weight', { precision: 10, scale: 2 }),
   reps: integer('reps').notNull(),
   notes: text('notes'),
+  completed: boolean('completed').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

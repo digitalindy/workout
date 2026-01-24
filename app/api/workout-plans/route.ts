@@ -48,6 +48,8 @@ export async function POST(request: Request) {
           targetSets: ex.targetSets,
           targetReps: ex.targetReps,
           notes: ex.notes,
+          supersetGroup: ex.supersetGroup,
+          category: ex.category,
         }))
       );
     }

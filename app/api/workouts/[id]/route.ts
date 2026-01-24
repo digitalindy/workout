@@ -48,7 +48,6 @@ export async function PUT(
       .update(workoutLogs)
       .set({
         workoutPlanId: validatedData.workoutPlanId,
-        name: validatedData.name,
         notes: validatedData.notes,
         performedAt: validatedData.performedAt ? new Date(validatedData.performedAt) : undefined,
       })
@@ -71,6 +70,7 @@ export async function PUT(
             weight: set.weight?.toString(),
             reps: set.reps,
             notes: set.notes,
+            completed: set.completed ?? false,
           }))
         );
       }

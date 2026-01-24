@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workoutSets } from '@/lib/db/schema';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { desc, inArray } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {

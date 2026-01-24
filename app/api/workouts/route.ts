@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       .insert(workoutLogs)
       .values({
         workoutPlanId: validatedData.workoutPlanId,
-        name: validatedData.name,
         notes: validatedData.notes,
         performedAt: validatedData.performedAt ? new Date(validatedData.performedAt) : new Date(),
       })
@@ -51,6 +50,7 @@ export async function POST(request: Request) {
           weight: set.weight?.toString(),
           reps: set.reps,
           notes: set.notes,
+          completed: set.completed ?? false,
         }))
       );
     }

@@ -16,6 +16,8 @@ type PlanExercise = {
   targetSets?: number;
   targetReps?: number;
   notes?: string;
+  supersetGroup?: number;
+  category?: string;
   exercise: Exercise;
 };
 
@@ -43,6 +45,8 @@ export default function PlansPage() {
     targetSets?: number;
     targetReps?: number;
     notes?: string;
+    supersetGroup?: number;
+    category?: string;
   }[]>([]);
 
   useEffect(() => {
@@ -114,6 +118,8 @@ export default function PlansPage() {
         targetSets: ex.targetSets || undefined,
         targetReps: ex.targetReps || undefined,
         notes: ex.notes || undefined,
+        supersetGroup: ex.supersetGroup || undefined,
+        category: ex.category || undefined,
       }))
     );
     setEditingId(plan.id);
@@ -139,7 +145,7 @@ export default function PlansPage() {
     setSelectedExercises(selectedExercises.filter((_, i) => i !== index));
   };
 
-  const updateExercise = (index: number, field: string, value: any) => {
+  const updateExercise = (index: number, field: string, value: number | string | undefined) => {
     const updated = [...selectedExercises];
     updated[index] = { ...updated[index], [field]: value };
     setSelectedExercises(updated);
@@ -237,59 +243,85 @@ export default function PlansPage() {
 
                   {selectedExercises.map((ex, idx) => (
                     <div key={idx} className="bg-base-200 p-4 rounded-lg mb-2">
-                      <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-stretch sm:items-start">
-                        <div className="sm:col-span-4">
-                          <select
-                            value={ex.exerciseId}
-                            onChange={(e) => updateExercise(idx, 'exerciseId', parseInt(e.target.value))}
-                            className="select select-bordered w-full select-sm"
-                            required
-                          >
-                            <option value={0}>Select exercise</option>
-                            {allExercises.map((exercise) => (
-                              <option key={exercise.id} value={exercise.id}>
-                                {exercise.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="flex gap-2 sm:contents">
-                          <div className="flex-1 sm:col-span-2">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-stretch sm:items-start">
+                          <div className="sm:col-span-4">
+                            <select
+                              value={ex.exerciseId}
+                              onChange={(e) => updateExercise(idx, 'exerciseId', parseInt(e.target.value))}
+                              className="select select-bordered w-full select-sm"
+                              required
+                            >
+                              <option value={0}>Select exercise</option>
+                              {allExercises.map((exercise) => (
+                                <option key={exercise.id} value={exercise.id}>
+                                  {exercise.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex gap-2 sm:contents">
+                            <div className="flex-1 sm:col-span-2">
+                              <input
+                                type="number"
+                                placeholder="Sets"
+                                value={ex.targetSets || ''}
+                                onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
+                                className="input input-bordered input-sm w-full"
+                              />
+                            </div>
+                            <div className="flex-1 sm:col-span-2">
+                              <input
+                                type="number"
+                                placeholder="Reps"
+                                value={ex.targetReps || ''}
+                                onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
+                                className="input input-bordered input-sm w-full"
+                              />
+                            </div>
+                          </div>
+                          <div className="sm:col-span-3">
                             <input
-                              type="number"
-                              placeholder="Sets"
-                              value={ex.targetSets || ''}
-                              onChange={(e) => updateExercise(idx, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
+                              type="text"
+                              placeholder="Notes"
+                              value={ex.notes || ''}
+                              onChange={(e) => updateExercise(idx, 'notes', e.target.value)}
                               className="input input-bordered input-sm w-full"
                             />
                           </div>
-                          <div className="flex-1 sm:col-span-2">
+                          <div className="sm:col-span-1">
+                            <button
+                              type="button"
+                              onClick={() => removeExercise(idx)}
+                              className="btn btn-error btn-sm w-full"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="flex-1">
                             <input
                               type="number"
-                              placeholder="Reps"
-                              value={ex.targetReps || ''}
-                              onChange={(e) => updateExercise(idx, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
+                              placeholder="Superset Group (optional)"
+                              value={ex.supersetGroup || ''}
+                              onChange={(e) => updateExercise(idx, 'supersetGroup', e.target.value ? parseInt(e.target.value) : undefined)}
                               className="input input-bordered input-sm w-full"
                             />
                           </div>
-                        </div>
-                        <div className="sm:col-span-3">
-                          <input
-                            type="text"
-                            placeholder="Notes"
-                            value={ex.notes || ''}
-                            onChange={(e) => updateExercise(idx, 'notes', e.target.value)}
-                            className="input input-bordered input-sm w-full"
-                          />
-                        </div>
-                        <div className="sm:col-span-1">
-                          <button
-                            type="button"
-                            onClick={() => removeExercise(idx)}
-                            className="btn btn-error btn-sm w-full"
-                          >
-                            ×
-                          </button>
+                          <div className="flex-1">
+                            <select
+                              value={ex.category || ''}
+                              onChange={(e) => updateExercise(idx, 'category', e.target.value || undefined)}
+                              className="select select-bordered select-sm w-full"
+                            >
+                              <option value="">Category (optional)</option>
+                              <option value="warmup">Warmup</option>
+                              <option value="main">Main</option>
+                              <option value="accessory">Accessory</option>
+                              <option value="cooldown">Cooldown</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                     </div>
