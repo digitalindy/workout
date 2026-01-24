@@ -447,13 +447,6 @@ export default function WorkoutsPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setShowCompleted(!showCompleted)}
-                      className="btn btn-ghost btn-sm"
-                    >
-                      {showCompleted ? 'Hide' : 'Show'} Completed
-                    </button>
-                    <button
-                      type="button"
                       onClick={addSet}
                       className="btn btn-success btn-sm"
                     >
