@@ -28,6 +28,7 @@ type WorkoutLog = {
   workoutPlan?: {
     id: number;
     name: string;
+    exercises: PlanExercise[];
   };
   sets: WorkoutSet[];
 };
@@ -460,9 +461,53 @@ export default function WorkoutsPage() {
                     const showWeightField = exercise?.usesWeight ?? true;
                     const isExpanded = expandedSets.has(idx) || !set.completed;
 
+                    // Find plan exercise info for category/superset display
+                    const selectedPlan = plans.find(p => p.id === formData.workoutPlanId);
+                    const planExercise = selectedPlan?.exercises.find(ex => ex.exerciseId === set.exerciseId);
+
+                    const prevSet = idx > 0 ? sets[idx - 1] : null;
+                    const nextSet = idx < sets.length - 1 ? sets[idx + 1] : null;
+
+                    const prevPlanEx = prevSet ? selectedPlan?.exercises.find(ex => ex.exerciseId === prevSet.exerciseId) : null;
+                    const nextPlanEx = nextSet ? selectedPlan?.exercises.find(ex => ex.exerciseId === nextSet.exerciseId) : null;
+
+                    const isInSuperset = !!planExercise?.supersetGroup;
+                    const isStartOfSuperset = isInSuperset && (
+                      !prevPlanEx?.supersetGroup ||
+                      planExercise?.supersetGroup !== prevPlanEx?.supersetGroup
+                    );
+                    const isEndOfSuperset = isInSuperset && (
+                      !nextPlanEx?.supersetGroup ||
+                      planExercise?.supersetGroup !== nextPlanEx?.supersetGroup
+                    );
+
+                    const showCategoryHeader = planExercise?.category && (
+                      idx === 0 ||
+                      !prevPlanEx?.category ||
+                      planExercise.category !== prevPlanEx.category
+                    );
+
                     return (
-                      <div key={idx} className={`bg-base-200 rounded-lg ${set.completed && !isExpanded ? 'border-l-4 border-success' : ''}`}>
+                      <div key={idx}>
+                        {showCategoryHeader && planExercise?.category && (
+                          <div className="mt-3 mb-2 first:mt-0">
+                            <span className={`badge badge-sm ${
+                              planExercise.category === 'warmup' ? 'badge-info' :
+                              planExercise.category === 'main' ? 'badge-primary' :
+                              planExercise.category === 'accessory' ? 'badge-secondary' :
+                              planExercise.category === 'cooldown' ? 'badge-accent' : 'badge-ghost'
+                            }`}>
+                              {planExercise.category.toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`bg-base-200 rounded-lg ${set.completed && !isExpanded ? 'border-l-4 border-success' : ''} ${
+                          isInSuperset ? 'ring-2 ring-primary ring-opacity-20' : ''
+                        } ${isStartOfSuperset ? 'mt-2' : ''} ${isEndOfSuperset ? 'mb-2' : ''}`}>
                         <div className="flex items-center gap-2 py-2 px-3">
+                          {isInSuperset && (
+                            <span className="text-xs opacity-50 shrink-0">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
+                          )}
                           <button
                             type="button"
                             onClick={() => toggleSetExpanded(idx)}
@@ -550,6 +595,7 @@ export default function WorkoutsPage() {
                           </div>
                         </div>
                         )}
+                        </div>
                       </div>
                     );
                   })}
@@ -617,17 +663,70 @@ export default function WorkoutsPage() {
 
                   <div className="divider"></div>
                   <div className="space-y-1">
-                    {workout.sets.map((set) => (
-                      <div key={set.id} className="flex items-center gap-3 text-sm">
-                        <span className="opacity-60 font-mono w-8">#{set.setNumber}</span>
-                        <span className="font-medium w-40">{set.exercise.name}</span>
-                        <span className="text-base-content opacity-70">
-                          {set.weight && `${set.weight} lbs × `}
-                          {set.reps} reps
-                        </span>
-                        {set.notes && <span className="opacity-70 italic">- {set.notes}</span>}
-                      </div>
-                    ))}
+                    {workout.sets.map((set, idx) => {
+                      // Find the plan exercise info for this set's exercise
+                      const planExercise = workout.workoutPlan?.exercises.find(
+                        (ex) => ex.exerciseId === set.exerciseId
+                      );
+
+                      const prevSet = idx > 0 ? workout.sets[idx - 1] : null;
+                      const nextSet = idx < workout.sets.length - 1 ? workout.sets[idx + 1] : null;
+
+                      const prevPlanEx = prevSet ? workout.workoutPlan?.exercises.find(
+                        (ex) => ex.exerciseId === prevSet.exerciseId
+                      ) : null;
+                      const nextPlanEx = nextSet ? workout.workoutPlan?.exercises.find(
+                        (ex) => ex.exerciseId === nextSet.exerciseId
+                      ) : null;
+
+                      const isInSuperset = !!planExercise?.supersetGroup;
+                      const isStartOfSuperset = isInSuperset && (
+                        !prevPlanEx?.supersetGroup ||
+                        planExercise?.supersetGroup !== prevPlanEx?.supersetGroup
+                      );
+                      const isEndOfSuperset = isInSuperset && (
+                        !nextPlanEx?.supersetGroup ||
+                        planExercise?.supersetGroup !== nextPlanEx?.supersetGroup
+                      );
+
+                      // Show category header when category changes or at start
+                      const showCategoryHeader = planExercise?.category && (
+                        idx === 0 ||
+                        !prevPlanEx?.category ||
+                        planExercise.category !== prevPlanEx.category
+                      );
+
+                      return (
+                        <div key={set.id}>
+                          {showCategoryHeader && planExercise?.category && (
+                            <div className="mt-3 mb-2 first:mt-0">
+                              <span className={`badge badge-sm ${
+                                planExercise.category === 'warmup' ? 'badge-info' :
+                                planExercise.category === 'main' ? 'badge-primary' :
+                                planExercise.category === 'accessory' ? 'badge-secondary' :
+                                planExercise.category === 'cooldown' ? 'badge-accent' : 'badge-ghost'
+                              }`}>
+                                {planExercise.category.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          <div className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${
+                            isInSuperset ? 'bg-base-200' : ''
+                          } ${isStartOfSuperset ? 'pt-2' : ''} ${isEndOfSuperset ? 'pb-2' : ''}`}>
+                            {isInSuperset && (
+                              <span className="text-xs opacity-50 shrink-0">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
+                            )}
+                            <span className="opacity-60 font-mono text-xs shrink-0">#{set.setNumber}</span>
+                            <span className="font-medium flex-1 truncate">{set.exercise.name}</span>
+                            <span className="text-base-content opacity-70 text-xs shrink-0">
+                              {set.weight && `${set.weight} lbs × `}
+                              {set.reps} reps
+                            </span>
+                            {set.notes && <span className="opacity-70 italic text-xs truncate">- {set.notes}</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

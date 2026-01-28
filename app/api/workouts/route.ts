@@ -9,7 +9,16 @@ export async function GET() {
   try {
     const logs = await db.query.workoutLogs.findMany({
       with: {
-        workoutPlan: true,
+        workoutPlan: {
+          with: {
+            exercises: {
+              with: {
+                exercise: true,
+              },
+              orderBy: (exercises, { asc }) => [asc(exercises.orderIndex)],
+            },
+          },
+        },
         sets: {
           with: {
             exercise: true,
