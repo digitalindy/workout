@@ -381,24 +381,52 @@ export default function PlansPage() {
                   <div className="divider"></div>
 
                   <div>
-                    <h4 className="font-semibold mb-2">Exercises:</h4>
-                    <div className="space-y-2">
-                      {plan.exercises.map((ex, idx) => (
-                        <div key={ex.id} className="flex items-center gap-3 text-sm">
-                          <span className="badge badge-neutral">{idx + 1}</span>
-                          <span className="font-medium">{ex.exercise.name}</span>
-                          {(ex.targetSets || ex.targetReps) && (
-                            <span className="opacity-70">
-                              {ex.targetSets && `${ex.targetSets} sets`}
-                              {ex.targetSets && ex.targetReps && ' × '}
-                              {ex.targetReps && `${ex.targetReps} reps`}
-                            </span>
-                          )}
-                          {ex.notes && (
-                            <span className="opacity-60 italic">- {ex.notes}</span>
-                          )}
-                        </div>
-                      ))}
+                    <h4 className="font-semibold mb-3">Exercises:</h4>
+                    <div className="space-y-1">
+                      {plan.exercises.map((ex, idx) => {
+                        const prevEx = idx > 0 ? plan.exercises[idx - 1] : null;
+                        const nextEx = idx < plan.exercises.length - 1 ? plan.exercises[idx + 1] : null;
+                        const isStartOfSuperset = ex.supersetGroup && ex.supersetGroup !== prevEx?.supersetGroup;
+                        const isInSuperset = ex.supersetGroup;
+                        const isEndOfSuperset = ex.supersetGroup && ex.supersetGroup !== nextEx?.supersetGroup;
+                        const showCategoryHeader = !prevEx || ex.category !== prevEx.category;
+
+                        return (
+                          <div key={ex.id}>
+                            {showCategoryHeader && ex.category && (
+                              <div className="mt-3 mb-2 first:mt-0">
+                                <span className={`badge badge-sm ${
+                                  ex.category === 'warmup' ? 'badge-info' :
+                                  ex.category === 'main' ? 'badge-primary' :
+                                  ex.category === 'accessory' ? 'badge-secondary' :
+                                  ex.category === 'cooldown' ? 'badge-accent' : 'badge-ghost'
+                                }`}>
+                                  {ex.category.toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                            <div className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${
+                              isInSuperset ? 'bg-base-200' : ''
+                            } ${isStartOfSuperset ? 'pt-2' : ''} ${isEndOfSuperset ? 'pb-2' : ''}`}>
+                              {isInSuperset && (
+                                <span className="text-xs opacity-50">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
+                              )}
+                              <span className="badge badge-neutral badge-sm shrink-0">{idx + 1}</span>
+                              <span className="font-medium flex-1">{ex.exercise.name}</span>
+                              {(ex.targetSets || ex.targetReps) && (
+                                <span className="opacity-70 text-xs shrink-0">
+                                  {ex.targetSets && `${ex.targetSets} sets`}
+                                  {ex.targetSets && ex.targetReps && ' × '}
+                                  {ex.targetReps && `${ex.targetReps} reps`}
+                                </span>
+                              )}
+                              {ex.notes && (
+                                <span className="opacity-60 italic text-xs shrink-0">- {ex.notes}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

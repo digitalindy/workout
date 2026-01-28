@@ -69,7 +69,6 @@ export default function WorkoutsPage() {
     notes?: string;
     completed?: boolean;
   }[]>([]);
-  const [showCompleted, setShowCompleted] = useState(true);
   const [expandedSets, setExpandedSets] = useState<Set<number>>(new Set());
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDraft, setIsDraft] = useState(false);
@@ -459,9 +458,6 @@ export default function WorkoutsPage() {
                   {sets.map((set, idx) => {
                     const exercise = allExercises.find(ex => ex.id === set.exerciseId);
                     const showWeightField = exercise?.usesWeight ?? true;
-
-                    if (set.completed && !showCompleted) return null;
-
                     const isExpanded = expandedSets.has(idx) || !set.completed;
 
                     return (
