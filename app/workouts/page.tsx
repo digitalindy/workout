@@ -180,6 +180,18 @@ export default function WorkoutsPage() {
   };
 
   const handlePlanSelect = async (planId: number) => {
+    // Don't do anything if selecting the same plan
+    if (planId === formData.workoutPlanId) {
+      return;
+    }
+
+    // If there are existing sets, confirm before switching
+    if (sets.length > 0 && !confirm('Switching plans will replace your current workout. Continue?')) {
+      // User cancelled - revert the dropdown by forcing a re-render
+      // The dropdown is controlled by formData.workoutPlanId so it will stay on the old value
+      return;
+    }
+
     const plan = plans.find((p) => p.id === planId);
     if (plan) {
       setFormData({ ...formData, workoutPlanId: planId });
@@ -190,19 +202,53 @@ export default function WorkoutsPage() {
       // Fetch last weights for these exercises
       const lastWeights = await fetchLastWeights(exerciseIds);
 
-      const planSets = plan.exercises.flatMap((ex) =>
-        Array.from({ length: ex.targetSets || 3 }, (_, i) => {
-          const setNumber = i + 1;
-          const lastWeight = lastWeights[ex.exerciseId]?.find(w => w.setNumber === setNumber);
+      // Group exercises by superset group
+      const supersetGroups = new Map<number | null, typeof plan.exercises>();
+      for (const ex of plan.exercises) {
+        const key = ex.supersetGroup || null;
+        if (!supersetGroups.has(key)) {
+          supersetGroups.set(key, []);
+        }
+        supersetGroups.get(key)!.push(ex);
+      }
 
-          return {
-            exerciseId: ex.exerciseId,
-            setNumber,
-            weight: lastWeight?.weight,
-            reps: lastWeight?.reps || ex.targetReps || 0,
-          };
-        })
-      );
+      const planSets: typeof sets = [];
+
+      // Process each group
+      for (const [supersetGroup, exercises] of supersetGroups.entries()) {
+        if (supersetGroup === null || exercises.length === 1) {
+          // No superset - add all sets for each exercise sequentially
+          for (const ex of exercises) {
+            for (let i = 0; i < (ex.targetSets || 3); i++) {
+              const setNumber = i + 1;
+              const lastWeight = lastWeights[ex.exerciseId]?.find(w => w.setNumber === setNumber);
+              planSets.push({
+                exerciseId: ex.exerciseId,
+                setNumber,
+                weight: lastWeight?.weight,
+                reps: lastWeight?.reps || ex.targetReps || 0,
+              });
+            }
+          }
+        } else {
+          // Superset - alternate between exercises
+          const maxSets = Math.max(...exercises.map(ex => ex.targetSets || 3));
+          for (let setNum = 1; setNum <= maxSets; setNum++) {
+            for (const ex of exercises) {
+              if (setNum <= (ex.targetSets || 3)) {
+                const lastWeight = lastWeights[ex.exerciseId]?.find(w => w.setNumber === setNum);
+                planSets.push({
+                  exerciseId: ex.exerciseId,
+                  setNumber: setNum,
+                  weight: lastWeight?.weight,
+                  reps: lastWeight?.reps || ex.targetReps || 0,
+                });
+              }
+            }
+          }
+        }
+      }
+
       setSets(planSets);
     }
   };
@@ -375,6 +421,13 @@ export default function WorkoutsPage() {
             <div className="text-sm text-base-content opacity-70 flex items-center gap-2">
               <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
               You have an unsaved draft
+              <button
+                onClick={() => resetForm()}
+                className="btn btn-ghost btn-xs text-base-content opacity-50 hover:opacity-100"
+                aria-label="Discard draft"
+              >
+                ✕
+              </button>
             </div>
           )}
         </div>
@@ -417,14 +470,14 @@ export default function WorkoutsPage() {
               <div>
                 <div className="form-control">
                   <label className="label"><span className="label-text">
-                  Date & Time
+                    Date & Time: <b>{formatDate(formData.performedAt)}</b>
                 </span></label></div>
-                <input
-                  type="datetime-local"
-                  value={formData.performedAt}
-                  onChange={(e) => setFormData({ ...formData, performedAt: e.target.value })}
-                  className="select select-bordered w-full"
-                />
+                {/*<input*/}
+                {/*  type="datetime-local"*/}
+                {/*  value={formData.performedAt}*/}
+                {/*  onChange={(e) => setFormData({ ...formData, performedAt: e.target.value })}*/}
+                {/*  className="select select-bordered w-full"*/}
+                {/*/>*/}
               </div>
 
               <div>
@@ -433,7 +486,7 @@ export default function WorkoutsPage() {
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="select select-bordered w-full"
+                  className="textarea w-full"
                   rows={2}
                 />
               </div>
