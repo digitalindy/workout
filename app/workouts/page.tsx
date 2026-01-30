@@ -240,7 +240,7 @@ export default function WorkoutsPage() {
       if (res.ok) {
         await fetchWorkouts();
         clearDraft();
-        resetForm();
+        resetForm(true); // Skip confirmation after successful submit
       }
     } catch (error) {
       console.error('Error saving workout:', error);
@@ -310,8 +310,8 @@ export default function WorkoutsPage() {
     setSets(updated);
   };
 
-  const resetForm = () => {
-    if (isDraft && !confirm('You have unsaved changes. Are you sure you want to discard the draft?')) {
+  const resetForm = (skipConfirmation = false) => {
+    if (!skipConfirmation && isDraft && !confirm('You have unsaved changes. Are you sure you want to discard the draft?')) {
       return;
     }
     setFormData({
@@ -618,7 +618,7 @@ export default function WorkoutsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={resetForm}
+                  onClick={() => resetForm()}
                   className="btn btn-ghost"
                 >
                   Discard
