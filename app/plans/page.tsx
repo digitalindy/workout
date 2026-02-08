@@ -392,7 +392,7 @@ export default function PlansPage() {
                         const showCategoryHeader = !prevEx || ex.category !== prevEx.category;
 
                         return (
-                          <div key={ex.id}>
+                          <div key={ex.id} className={`${isInSuperset && !isStartOfSuperset ? '!mt-0' : ''}`}>
                             {showCategoryHeader && ex.category && (
                               <div className="mt-3 mb-2 first:mt-0">
                                 <span className={`badge badge-sm ${
@@ -405,9 +405,9 @@ export default function PlansPage() {
                                 </span>
                               </div>
                             )}
-                            <div className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${
-                              isInSuperset ? 'bg-base-200' : ''
-                            } ${isStartOfSuperset ? 'pt-2' : ''} ${isEndOfSuperset ? 'pb-2' : ''}`}>
+                            <div className={`flex items-center gap-2 text-sm py-1 px-2 ${
+                              isInSuperset ? 'bg-base-200 border-x-2 border-primary/20' : ''
+                            } ${isStartOfSuperset ? 'mt-2 border-t-2 rounded-t-lg pt-2' : ''} ${isEndOfSuperset ? 'mb-2 border-b-2 rounded-b-lg pb-2' : ''} ${!isInSuperset ? 'rounded' : ''}`}>
                               {isInSuperset && (
                                 <span className="text-xs opacity-50">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
                               )}

@@ -541,7 +541,7 @@ export default function WorkoutsPage() {
                     );
 
                     return (
-                      <div key={idx}>
+                      <div key={idx} className={`${isInSuperset && !isStartOfSuperset ? '!mt-0' : ''}`}>
                         {showCategoryHeader && planExercise?.category && (
                           <div className="mt-3 mb-2 first:mt-0">
                             <span className={`badge badge-sm ${
@@ -554,9 +554,9 @@ export default function WorkoutsPage() {
                             </span>
                           </div>
                         )}
-                        <div className={`bg-base-200 rounded-lg ${set.completed && !isExpanded ? 'border-l-4 border-success' : ''} ${
-                          isInSuperset ? 'ring-2 ring-primary ring-opacity-20' : ''
-                        } ${isStartOfSuperset ? 'mt-2' : ''} ${isEndOfSuperset ? 'mb-2' : ''}`}>
+                        <div className={`bg-base-200 ${!isInSuperset ? 'rounded-lg' : ''} ${set.completed && !isExpanded ? 'border-l-4 border-success' : ''} ${
+                          isInSuperset ? 'border-x-2 border-primary/20' : ''
+                        } ${isStartOfSuperset ? 'mt-2 border-t-2 rounded-t-lg' : ''} ${isEndOfSuperset ? 'mb-2 border-b-2 rounded-b-lg' : ''}`}>
                         <div className="flex items-center gap-2 py-2 px-3">
                           {isInSuperset && (
                             <span className="text-xs opacity-50 shrink-0">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
@@ -750,7 +750,7 @@ export default function WorkoutsPage() {
                       );
 
                       return (
-                        <div key={set.id}>
+                        <div key={set.id} className={`${isInSuperset && !isStartOfSuperset ? '!mt-0' : ''}`}>
                           {showCategoryHeader && planExercise?.category && (
                             <div className="mt-3 mb-2 first:mt-0">
                               <span className={`badge badge-sm ${
@@ -763,9 +763,9 @@ export default function WorkoutsPage() {
                               </span>
                             </div>
                           )}
-                          <div className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${
-                            isInSuperset ? 'bg-base-200' : ''
-                          } ${isStartOfSuperset ? 'pt-2' : ''} ${isEndOfSuperset ? 'pb-2' : ''}`}>
+                          <div className={`flex items-center gap-2 text-sm py-1 px-2 ${
+                            isInSuperset ? 'bg-base-200 border-x-2 border-primary/20' : ''
+                          } ${isStartOfSuperset ? 'mt-2 border-t-2 rounded-t-lg pt-2' : ''} ${isEndOfSuperset ? 'mb-2 border-b-2 rounded-b-lg pb-2' : ''} ${!isInSuperset ? 'rounded' : ''}`}>
                             {isInSuperset && (
                               <span className="text-xs opacity-50 shrink-0">{isStartOfSuperset || isEndOfSuperset ? '⎨' : '⎪'}</span>
                             )}
