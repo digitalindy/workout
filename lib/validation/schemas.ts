@@ -44,6 +44,16 @@ export const workoutPlanUpdateSchema = z.object({
   })).optional(),
 });
 
+export const workoutPlanExercisePatchSchema = z.object({
+  exerciseId: z.number().optional(),
+  orderIndex: z.number().optional(),
+  targetSets: z.number().nullable().optional(),
+  targetReps: z.number().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  supersetGroup: z.number().nullable().optional(),
+  category: z.string().nullable().optional(),
+});
+
 export const workoutLogSchema = z.object({
   workoutPlanId: z.number().optional(),
   notes: z.string().optional(),

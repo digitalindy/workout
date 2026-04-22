@@ -3,11 +3,37 @@ import { db } from '@/lib/db';
 import { exercises } from '@/lib/db/schema';
 import { z } from 'zod';
 import { exerciseSchema } from '@/lib/validation/schemas';
+import { extractExerciseMuscleGroups, extractExerciseEquipment } from '@/lib/exercises/metadata';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const allExercises = await db.select().from(exercises).orderBy(exercises.name);
-    return NextResponse.json(allExercises);
+    const url = new URL(request.url);
+    const muscleFilter = url.searchParams.get('muscleGroup')?.trim().toLowerCase();
+    const equipFilter = url.searchParams.get('equipment')?.trim().toLowerCase();
+
+    const all = await db.select().from(exercises).orderBy(exercises.name);
+
+    if (!muscleFilter && !equipFilter) {
+      return NextResponse.json(all);
+    }
+
+    const filtered = all.filter((ex) => {
+      if (muscleFilter) {
+        const mgs = extractExerciseMuscleGroups(ex.instructions);
+        if (!mgs.some((m) => m.toLowerCase().includes(muscleFilter))) {
+          return false;
+        }
+      }
+      if (equipFilter) {
+        const equip = extractExerciseEquipment(ex.instructions);
+        if (!equip || !equip.toLowerCase().includes(equipFilter)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    return NextResponse.json(filtered);
   } catch (error) {
     console.error('Error fetching exercises:', error);
     return NextResponse.json({ error: 'Failed to fetch exercises' }, { status: 500 });

@@ -103,6 +103,19 @@ const WorkoutPlanUpdateSchema = registry.register(
   })
 );
 
+const WorkoutPlanExercisePatchSchema = registry.register(
+  'WorkoutPlanExercisePatch',
+  z.object({
+    exerciseId: z.number().optional().openapi({ description: 'Swap this slot to a different exercise' }),
+    orderIndex: z.number().optional().openapi({ description: 'Move this slot to a new position (caller is responsible for keeping indices unique)' }),
+    targetSets: z.number().nullable().optional(),
+    targetReps: z.number().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    supersetGroup: z.number().nullable().optional(),
+    category: z.string().nullable().optional(),
+  }).openapi({ description: 'Only include the fields you want to change. All fields optional.' })
+);
+
 // ============================================
 // WORKOUT LOG SCHEMAS
 // ============================================
@@ -185,11 +198,17 @@ registry.registerPath({
   method: 'get',
   path: '/api/exercises',
   summary: 'List all exercises',
-  description: 'Returns all exercises ordered by name',
+  description: 'Returns exercises ordered by name. Supports optional filtering by muscle group or equipment (matched against the parsed **Muscle Groups:** and **Equipment:** lines in the instructions field). Both filters are case-insensitive substring matches.',
   tags: ['Exercises'],
+  request: {
+    query: z.object({
+      muscleGroup: z.string().optional().openapi({ description: 'Case-insensitive substring match against any listed muscle group (e.g. "chest", "glutes", "triceps")' }),
+      equipment: z.string().optional().openapi({ description: 'Case-insensitive substring match against equipment (e.g. "dumbbell", "barbell", "bodyweight", "resistance band")' }),
+    }),
+  },
   responses: {
     200: {
-      description: 'List of exercises',
+      description: 'List of exercises (filtered if query params supplied)',
       content: { 'application/json': { schema: z.array(ExerciseSchema) } },
     },
     500: {
@@ -417,6 +436,71 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: 'patch',
+  path: '/api/workout-plans/{id}/exercises/{orderIndex}',
+  summary: 'Update a single exercise slot in a plan',
+  description: 'Partial update of one exercise slot without resending the entire exercises array. Identify the slot by its orderIndex within the plan. Any omitted field is left unchanged.',
+  tags: ['Workout Plans'],
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: 'Workout plan ID' }),
+      orderIndex: z.string().openapi({ description: 'orderIndex of the exercise slot to update' }),
+    }),
+    body: { content: { 'application/json': { schema: WorkoutPlanExercisePatchSchema } } },
+  },
+  responses: {
+    200: {
+      description: 'Updated exercise slot with exercise details',
+      content: { 'application/json': { schema: WorkoutPlanExerciseSchema } },
+    },
+    400: {
+      description: 'Validation error or no fields supplied',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    404: {
+      description: 'No exercise at the given orderIndex in this plan',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    500: {
+      description: 'Server error',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/workout-plans/{id}/exercises/{orderIndex}',
+  summary: 'Remove a single exercise slot from a plan',
+  description: 'Removes one exercise from a plan by orderIndex without resending the entire exercises array. Does not renumber remaining slots — if you care about contiguous orderIndex values, re-PUT the full plan after.',
+  tags: ['Workout Plans'],
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: 'Workout plan ID' }),
+      orderIndex: z.string().openapi({ description: 'orderIndex of the exercise slot to remove' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Deletion confirmation',
+      content: { 'application/json': { schema: z.object({ success: z.boolean() }) } },
+    },
+    400: {
+      description: 'Invalid id or orderIndex',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    404: {
+      description: 'No exercise at the given orderIndex in this plan',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    500: {
+      description: 'Server error',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});
+
 // ============================================
 // WORKOUT LOG ENDPOINTS
 // ============================================
@@ -542,6 +626,66 @@ registry.registerPath({
 // ============================================
 // UTILITY ENDPOINTS
 // ============================================
+
+const MuscleGroupRowSchema = z.object({
+  name: z.string(),
+  sets: z.number(),
+  reps: z.number(),
+  volume: z.number().openapi({ description: 'Sum of weight × reps across all completed sets (kg·reps or lb·reps depending on logged units). 0 for bodyweight exercises.' }),
+  sessions: z.number().openapi({ description: 'Distinct workout sessions this muscle appeared in' }),
+  exercises: z.array(z.string()),
+});
+
+const VolumeExerciseRowSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  sets: z.number(),
+  reps: z.number(),
+  volume: z.number(),
+  sessions: z.number(),
+  maxWeight: z.number().nullable(),
+  avgWeight: z.number().nullable(),
+});
+
+const VolumeAnalyticsSchema = registry.register(
+  'VolumeAnalytics',
+  z.object({
+    weeks: z.number(),
+    since: z.string().openapi({ description: 'ISO timestamp marking the start of the window' }),
+    filters: z.object({
+      planId: z.number().nullable(),
+      onlyCompleted: z.boolean(),
+    }),
+    totalSessions: z.number(),
+    muscleGroups: z.array(MuscleGroupRowSchema).openapi({ description: 'One row per muscle group, sorted by sets descending. Muscle groups are parsed from each exercise\'s instructions — an exercise hitting three muscles contributes to three rows.' }),
+    exercises: z.array(VolumeExerciseRowSchema).openapi({ description: 'One row per exercise, sorted by sets descending' }),
+  })
+);
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/analytics/volume',
+  summary: 'Volume rollup by muscle group and exercise',
+  description: 'Aggregates completed sets across a rolling window and rolls them up by muscle group and by exercise. Muscle groups are derived by parsing the **Muscle Groups:** line of each exercise\'s instructions, so one set can count toward multiple muscle groups.',
+  tags: ['Analytics'],
+  request: {
+    query: z.object({
+      weeks: z.string().optional().openapi({ description: 'Window size in weeks, 1-52 (default 4)' }),
+      planId: z.string().optional().openapi({ description: 'Restrict to workouts performed for a specific plan' }),
+      onlyCompleted: z.string().optional().openapi({ description: 'Set to "false" to include un-checked sets (default: only counts completed sets)' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Volume rollup',
+      content: { 'application/json': { schema: VolumeAnalyticsSchema } },
+    },
+    500: {
+      description: 'Server error',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});
 
 registry.registerPath({
   method: 'get',

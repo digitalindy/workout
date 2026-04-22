@@ -40,6 +40,7 @@ This API uses a nested/batch approach:
       { name: 'Exercises', description: 'Manage exercise definitions' },
       { name: 'Workout Plans', description: 'Manage workout routines/programs' },
       { name: 'Workout Logs', description: 'Record and query completed workouts' },
+      { name: 'Analytics', description: 'Aggregated views over your workout history' },
     ],
   });
 }
