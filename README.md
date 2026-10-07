@@ -42,7 +42,10 @@ Create a `.env.local` file with your Neon database credentials:
 
 ```env
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+WORKOUTX_API_KEY=wx_your_api_key
 ```
+
+`WORKOUTX_API_KEY` powers the exercise GIF search and the `/api/workoutx/gifs/{id}` proxy. Get a key at [workoutxapp.com](https://workoutxapp.com).
 
 4. Push the database schema:
 

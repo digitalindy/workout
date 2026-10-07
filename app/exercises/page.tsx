@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { resolveGifUrl } from '@/lib/workoutx/gif-url';
+import GifPicker from './gif-picker';
 
 type Exercise = {
   id: number;
@@ -159,7 +161,21 @@ export default function ExercisesPage() {
                     className="input input-bordered"
                     placeholder="https://example.com/exercise.gif"
                   />
+                  {formData.gifUrl && (
+                    <img
+                      src={resolveGifUrl(formData.gifUrl)}
+                      alt="GIF preview"
+                      className="w-48 h-48 object-contain rounded-lg mt-2"
+                    />
+                  )}
                 </div>
+
+                <GifPicker
+                  key={editingId ?? 'new'}
+                  defaultQuery={formData.name}
+                  selectedUrl={formData.gifUrl}
+                  onSelect={(gifUrl) => setFormData({ ...formData, gifUrl })}
+                />
 
                 <div className="form-control">
                   <label className="label cursor-pointer justify-start gap-2">
@@ -207,9 +223,10 @@ export default function ExercisesPage() {
                     {exercise.gifUrl && (
                       <div className="flex-shrink-0">
                         <img
-                          src={exercise.gifUrl}
+                          src={resolveGifUrl(exercise.gifUrl)}
                           alt={exercise.name}
-                          className="w-full sm:w-48 h-48 object-cover rounded-lg"
+                          loading="lazy"
+                          className="w-full sm:w-48 h-48 object-contain rounded-lg"
                         />
                       </div>
                     )}

@@ -723,3 +723,82 @@ registry.registerPath({
     },
   },
 });
+
+// ============================================
+// WORKOUTX ENDPOINTS
+// ============================================
+
+const WorkoutXExerciseSchema = z.object({
+  id: z.string().openapi({ description: 'WorkoutX exercise ID' }),
+  name: z.string(),
+  bodyPart: z.string(),
+  target: z.string().openapi({ description: 'Primary target muscle' }),
+  equipment: z.string(),
+  gifUrl: z.string().openapi({ description: 'WorkoutX GIF URL; store this as an exercise gifUrl' }),
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/workoutx/search',
+  summary: 'Search WorkoutX exercises by name',
+  description: 'Partial name match, 10 results per page. Each uncached search uses one request of the monthly WorkoutX quota.',
+  tags: ['WorkoutX'],
+  request: {
+    query: z.object({
+      name: z.string().openapi({ description: 'Partial exercise name, e.g. "incline bench"' }),
+      offset: z.string().optional().openapi({ description: 'Number of results to skip (default: 0)' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Matching WorkoutX exercises',
+      content: {
+        'application/json': {
+          schema: z.object({
+            total: z.number().openapi({ description: 'Total number of matches' }),
+            data: z.array(WorkoutXExerciseSchema),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Missing name parameter',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    429: {
+      description: 'WorkoutX quota or rate limit exceeded',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    502: {
+      description: 'WorkoutX request failed',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/workoutx/gifs/{id}',
+  summary: 'Get a WorkoutX exercise GIF',
+  description: 'Proxies the GIF so the WorkoutX API key stays on the server. Exercises whose gifUrl points at api.workoutxapp.com are displayed through this endpoint.',
+  tags: ['WorkoutX'],
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: 'WorkoutX exercise ID', example: '0025' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'The GIF',
+      content: { 'image/gif': { schema: z.string().openapi({ format: 'binary' }) } },
+    },
+    404: {
+      description: 'GIF not found',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    502: {
+      description: 'WorkoutX request failed',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Markdown from "react-markdown";
+import { resolveGifUrl } from '@/lib/workoutx/gif-url';
 
 type Exercise = {
   id: number;
@@ -796,7 +797,7 @@ export default function WorkoutsPage() {
               {selectedExercise.gifUrl && (
                 <div className="flex justify-center">
                   <img
-                    src={selectedExercise.gifUrl}
+                    src={resolveGifUrl(selectedExercise.gifUrl)}
                     alt={selectedExercise.name}
                     className="w-full max-w-md rounded-lg"
                   />
